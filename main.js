@@ -1,5 +1,5 @@
 
-    
+
 // initialize kaboom context
 const k = kaboom({global:true});
 
@@ -13,6 +13,7 @@ function close_to(a,b) {
 
 
 loadRoot("assets/");
+loadSprite("ufo","ufo.png")
 loadSprite("coin","coin.png");
 loadSprite("ship","ship.png");
 loadSprite("alien","alien.png",{
@@ -37,13 +38,13 @@ function waypoints(wps,speed) {
                 }
                 if (this.pos.x > next_wp.x ){
                     this.move(-speed,0)
-                } 
+                }
                 if (this.pos.y < next_wp.y) {
                     this.move(0,speed)
                 }
                 if (this.pos.y > next_wp.y ){
                     this.move(0,-speed)
-                } 
+                }
                 if (close_to(this.pos,next_wp)) {
                     index = (index +1) % wps.length;
                     next_wp = wps[index];
@@ -63,12 +64,33 @@ function spinner(speed) {
    }
 }
 
+function chaser(target){
+  return{
+    add(){
+      this.action(()=>{
+        if (this.pos.x < target.pos.x) {
+            this.move(20,0)
+        }
+        if (this.pos.x > target.pos.x ){
+            this.move(-20,0)
+        }
+        if (this.pos.y < target.pos.y) {
+            this.move(0,20)
+        }
+        if (this.pos.y > target.pos.y ){
+            this.move(0,-20)
+        }
+      });
+    }
+  }
+}
+
 function keyMove(dist){
     return {
         add(){
             keyPress("up" ,()=>{
                 this.pos.y -=dist;
-            });  
+            });
             keyPress("down",()=>{
                 this.pos.y +=dist;
             });
@@ -86,25 +108,13 @@ function keyMove(dist){
 
 // define a scene
 const s1 = k.scene("main", () => {
-    // add a text at position (100, 100)
-    const ohi = k.add([
-        text("Aliennnnns", 32),
-        pos(100, 100),
-    ]);
+    let ship = add(["ship",sprite("ship") , pos(300,400),origin("center"),rotate(0),keyMove(30)]);
 
 
-    const al = add(["alien",sprite("alien"),pos(60,10),origin("center"),waypoints(wayPoints,300)]);
-    al.animSpeed = 0.2;
-    al.play("move");
 
 
-    add(["ship",sprite("ship") , pos(300,400),origin("center"),rotate(0),keyMove(30)]);
-
-
-    
-
-    loop(4 ,()=>{
-        add(["coin",sprite("coin"),pos(10,10),waypoints(wayPoints,100),rotate(0),spinner(2),origin("center")]);
+    loop(10 ,()=>{
+            add(["ufo",sprite("ufo"),pos(-20,-20),chaser(ship)])
     });
     keyPress("space",()=>{go("two")})
 });
@@ -120,4 +130,3 @@ const s2 = k.scene("two",() => {
 
 // start the game
 k.start("main");
-
