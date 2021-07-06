@@ -108,20 +108,22 @@ function keyMove(dist){
 
 // define a scene
 const s1 = k.scene("main", () => {
-    let ship = add(["ship",sprite("ship") , pos(300,400),origin("center"),rotate(0),keyMove(30)]);
+    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),keyMove(30)]);
 
 
-
+    ship.collides("ufo",()=>{
+      go("two")
+    });
 
     loop(10 ,()=>{
-            add(["ufo",sprite("ufo"),pos(-20,-20),chaser(ship)])
+            add(["ufo",sprite("ufo"),pos(-20,-20),chaser(ship),origin("center")])
     });
     keyPress("space",()=>{go("two")})
 });
 
 const s2 = k.scene("two",() => {
     k.add([
-        k.text("This two",32),
+        k.text("game over",32),
         k.pos(100,200),
     ]);
     keyPress("space",()=>{go("main")})
