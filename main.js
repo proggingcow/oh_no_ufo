@@ -17,6 +17,8 @@ function vel(friction){
       this.action(()=> {
         x *= 1-(dt() *friction);
         y *= 1-(dt() *friction);
+        if (Math.abs(x)<1) {x=0};
+        if (Math.abs(y)<1) {y=0};
         this.move(x,y)
 
       })
@@ -28,6 +30,19 @@ function vel(friction){
   }
 }
 
+function boundsCheck(bounds, f){
+  f ??= ()=>{go("two")};
+  return{
+    add(){
+      this.action(()=>{
+      if (this.pos.x > bounds.x + bounds.w) {f(this)};
+      if (this.pos.x < bounds.x) {f(this)};
+      if (this.pos.y > bounds.y + bounds.h) {f(this)};
+      if (this.pos.y < bounds.y) {f(this)};
+    });
+    }
+  }
+}
 
 
 loadRoot("assets/");
@@ -44,6 +59,7 @@ loadSprite("alien","alien.png",{
 
 const wayPoints=[{x:600,y:50},{x:50,y:350},{x:10,y:10},{x:1,y:1}];
 const way2 = [ { x:100,y:500}, {x:500,y:100}];
+const edge = {x:0,y:0,w:640,h:480}
 
 function waypoints(wps,speed) {
     let index = 0;
@@ -126,7 +142,7 @@ function keyMove(dist){
 
 // define a scene
 const s1 = k.scene("main", () => {
-    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5)]);
+    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5),boundsCheck(edge)]);
 
 
     ship.collides("ufo",()=>{
