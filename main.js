@@ -49,6 +49,7 @@ loadRoot("assets/");
 loadSprite("ufo","ufo.png")
 loadSprite("coin","coin.png");
 loadSprite("ship","ship.png");
+loadSprite("background","background.png")
 loadSprite("alien","alien.png",{
     sliceX:3,
     anims:{
@@ -142,6 +143,7 @@ function keyMove(dist){
 
 // define a scene
 const s1 = k.scene("main", () => {
+    let background = add([sprite("background"),pos(0,0)])
     let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5),boundsCheck(edge)]);
 
 
@@ -156,6 +158,7 @@ const s1 = k.scene("main", () => {
 });
 
 const s2 = k.scene("two",() => {
+    let background = add([sprite("background"),pos(0,0)])
     k.add([
         k.text("game over",32),
         k.pos(100,200),
