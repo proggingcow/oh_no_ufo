@@ -153,7 +153,7 @@ function keyMove(dist,rot){
 // define a scene
 const s1 = k.scene("main", () => {
     let background = add([sprite("background"),pos(0,0)])
-    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5,1.1),boundsCheck(edge),angler(4)]);
+    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5,0.5),boundsCheck(edge),angler(4)]);
 
 
     ship.collides("ufo",()=>{
