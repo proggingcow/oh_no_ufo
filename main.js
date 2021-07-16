@@ -161,7 +161,18 @@ const s1 = k.scene("main", () => {
     });
 
     loop(10 ,()=>{
-            add(["ufo",sprite("ufo"),pos(-20,-20),chaser(ship),origin("center")])
+            let e= Math.floor(Math.random() * 4);
+            let p = pos(0,0);
+            switch (e){
+              case 0 : p = pos(Math.random()* 640,-20);
+              break;
+              case 1 : p = pos(Math.random()*640,500);
+              break;
+              case 2 : p = pos(-40,Math.random()*480);
+              break;
+              default: p = pos(680,Math.random()*480);
+            }
+            add(["ufo",sprite("ufo"),p,chaser(ship),origin("center")])
     });
     keyPress("space",()=>{go("two")})
 });
