@@ -8,6 +8,23 @@ function close_to(a,b) {
     return ((Math.abs(a.x - b.x) < 5 )  && (Math.abs(a.y - b.y) <5))
 }
 
+function angler(friction){
+  friction ??= 0;
+  let aVel = 0;
+  return{
+    add(){
+      this.action(()=>{
+        aVel *= 1-(dt() *friction);
+        if (Math.abs(aVel)<0.3) {aVel=0};
+        this.angle += aVel*dt();
+      })
+    },
+    push_aVel(push){
+      aVel += push;
+    }
+  }
+}
+
 function vel(friction){
   friction ??= 0;
   let x =0;
@@ -89,15 +106,7 @@ function waypoints(wps,speed) {
     };
 }
 
-function spinner(speed) {
-   return {
-       add() {
-            this.action(()=>{
-                this.angle += speed * dt();
-            })
-        }
-   }
-}
+
 
 function chaser(target){
   return{
@@ -120,20 +129,20 @@ function chaser(target){
   }
 }
 
-function keyMove(dist){
+function keyMove(dist,rot){
     return {
         add(){
             keyDown("up" ,()=>{
-                this.push_vel(0,-dist);
+                this.push_vel(-dist * Math.sin(this.angle),-dist * Math.cos(this.angle));
             });
             keyDown("down",()=>{
-                this.push_vel(0,dist);
+                this.push_vel(dist * Math.sin(this.angle),dist * Math.cos(this.angle));
             });
             keyDown("right",()=>{
-                this.push_vel(dist,0);
+                this.push_aVel(-rot);
             });
             keyDown("left",()=>{
-                this.push_vel(-dist,0);
+                this.push_aVel(rot);
             });
         }
     }
@@ -144,7 +153,7 @@ function keyMove(dist){
 // define a scene
 const s1 = k.scene("main", () => {
     let background = add([sprite("background"),pos(0,0)])
-    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5),boundsCheck(edge)]);
+    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5,1.1),boundsCheck(edge),angler(4)]);
 
 
     ship.collides("ufo",()=>{
