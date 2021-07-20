@@ -154,10 +154,20 @@ function keyMove(dist,rot){
 const s1 = k.scene("main", () => {
     let background = add([sprite("background"),pos(0,0)])
     let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5,0.5),boundsCheck(edge),angler(4)]);
-
+    let score = add(["score",text("score=0",30),pos(0,0),{n:0}]);
+    function addScore(n){
+      score.n+=n;
+      score.text = `score=${score.n}`;
+    }
 
     ship.collides("ufo",()=>{
       go("two")
+    });
+
+    collides("ufo","ufo",(a,b)=>{
+      addScore(1)
+      destroy(a)
+      destroy(b)
     });
 
     loop(10 ,()=>{
