@@ -63,6 +63,8 @@ function boundsCheck(bounds, f){
 
 
 loadRoot("assets/");
+loadSprite("space_end","where_in_space.png")
+loadSprite("exploded","exploded.png")
 loadSprite("ufo","ufo.png")
 loadSprite("coin","coin.png");
 loadSprite("ship","ship.png");
@@ -148,20 +150,20 @@ function keyMove(dist,rot){
     }
 }
 
-
+//this: rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
 
 // define a scene
 const s1 = k.scene("main", () => {
     let background = add([sprite("background"),pos(0,0)])
-    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5,0.5),boundsCheck(edge),angler(4)]);
-    let score = add(["score",text("score=0",30),pos(0,0),{n:0}]);
+    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5,0.5),boundsCheck(edge,()=>{go("left",score)}),angler(4)]);
+    let score = add(["score",text("score=0",30),pos(0,2),{n:0}]);
     function addScore(n){
       score.n+=n;
       score.text = `score=${score.n}`;
     }
 
-    ship.collides("ufo",()=>{
-      go("two")
+    ship.collides("ufo",()=>{rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
+      go("exploded",score)
     });
 
     collides("ufo","ufo",(a,b)=>{
@@ -170,32 +172,63 @@ const s1 = k.scene("main", () => {
       destroy(b)
     });
 
-    loop(10 ,()=>{
+    loop(5 ,()=>{
             let e= Math.floor(Math.random() * 4);
             let p = pos(0,0);
             switch (e){
-              case 0 : p = pos(Math.random()* 640,-20);
+              case 0 : p = pos(Math.random()* 680-20,-20);
               break;
-              case 1 : p = pos(Math.random()*640,500);
+              case 1 : p = pos(Math.random()*680-20,500);
               break;
-              case 2 : p = pos(-40,Math.random()*480);
+              case 2 : p = pos(-40,Math.random()*520-40);
               break;
-              default: p = pos(680,Math.random()*480);
+              default: p = pos(680,Math.random()*520-20);
             }
             add(["ufo",sprite("ufo"),p,chaser(ship),origin("center")])
     });
-    keyPress("space",()=>{go("two")})
+    keyPress("space",()=>{go("two",score)})
 });
 
-const s2 = k.scene("two",() => {
+const s2 = k.scene("two",(score) => {
     let background = add([sprite("background"),pos(0,0)])
+    let fScore = add(["score",text(`final score=${score.n}`,30),pos(0,2)])
+    k.add([
+        k.text("game stoped",32),
+        k.pos(320,240),
+        k.origin("center")
+    ]);
+    keyPress("space",()=>{go("main")})
+});
+const s3 = k.scene("exploded",(score) => {
+    let background = add([sprite("exploded"),pos(0,0)])
+    let fScore = add(["score",text(`final score=${score.n}`,30),pos(0,2)])
     k.add([
         k.text("game over",32),
-        k.pos(100,200),
+        k.pos(320,240),
+        k.origin("center")
+    ]);
+    keyPress("space",()=>{go("main")})
+});
+const sl = k.scene("left",(score) => {
+    let background = add([sprite("space_end"),pos(0,0)])
+    let fScore = add(["score",text(`final score=${score.n}`,30),pos(0,2)])
+    k.add([
+        k.text("game over",32),
+        k.pos(320,240),
+        k.origin("center")
+    ]);
+    keyPress("space",()=>{go("main")})
+});
+const ss = k.scene("ss",() => {
+    let background = add([sprite("background"),pos(0,0)])
+    k.add([
+        k.text("start game:space",32),
+        k.pos(320,240),
+        k.origin("center")
     ]);
     keyPress("space",()=>{go("main")})
 });
 
 
 // start the game
-k.start("main");
+k.start("ss");
