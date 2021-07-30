@@ -8,6 +8,29 @@ function close_to(a,b) {
     return ((Math.abs(a.x - b.x) < 5 )  && (Math.abs(a.y - b.y) <5))
 }
 
+function hitCircleCircle(a,b){
+  let dx = a.x - b.x;
+  let dy = a.y - b.y;
+  let d2 =dx*dx+dy*dy;
+  let dr = a.r + b.r;
+  return dr*dr > d2;
+}
+
+function hitCircleBox(c,b){
+  if (c.x+c.r < b.x)return false;
+  if (c.y+c.r < b.y)return false;
+  if (c.x-c.r > b.x+b.w)return false;
+  if (c.y-c.r > b.y+b.h)return false;
+  if ( c.x > b.x &&  c.y> b.y && c.x < b.x + b.w && c.y < b.y +b.h)return true;
+
+}
+
+
+function trueCollides(a,b){
+  if (! a.boundSet) {return true}
+  if (! )
+}
+
 function angler(friction){
   friction ??= 0;
   let aVel = 0;
@@ -19,7 +42,7 @@ function angler(friction){
         this.angle += aVel*dt();
       })
     },
-    push_aVel(push){
+    push_aVel(pushf (! )){
       aVel += push;
     }
   }
@@ -110,6 +133,23 @@ function waypoints(wps,speed) {
 
 
 
+function smallBounds(points){
+  //points [{angle, dist, size}]
+  return {
+    function boundSet(){
+      let res = [];
+      let a = this.angle ?? 0;
+      for(i in points){
+        let p = points[i];
+        let a2 = a + (p.angle ?? 0);
+        let x = this.pos.x - p.dist * Math.sin(a2);
+        let y = this.pos.y - p.dist * Math.cos(a2);
+        res.push({x:x,y:y,size:p.size});
+      }
+    }
+  }
+}
+
 function chaser(target){
   return{
     add(){
@@ -163,6 +203,8 @@ const s1 = k.scene("main", () => {
     }
 
     ship.collides("ufo",()=>{rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
+      if (! trueCollides(a,b)) return ;
+
       go("exploded",score)
     });
 
