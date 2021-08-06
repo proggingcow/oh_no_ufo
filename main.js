@@ -8,6 +8,14 @@ function close_to(a,b) {
     return ((Math.abs(a.x - b.x) < 5 )  && (Math.abs(a.y - b.y) <5))
 }
 
+function hitBoxBox(a,b){
+  if (a.x+a.w < b.x)return false;
+  if (a.y+a.h < b.y)return false;
+  if (a.x-a.w > b.x+b.w)return false;
+  if (a.y-a.h > b.y+b.h)return false;
+  return true;
+}
+
 function hitCircleCircle(a,b){
   let dx = a.x - b.x;
   let dy = a.y - b.y;
@@ -17,18 +25,50 @@ function hitCircleCircle(a,b){
 }
 
 function hitCircleBox(c,b){
-  if (c.x+c.r < b.x)return false;
-  if (c.y+c.r < b.y)return false;
-  if (c.x-c.r > b.x+b.w)return false;
-  if (c.y-c.r > b.y+b.h)return false;
-  if ( c.x > b.x &&  c.y> b.y && c.x < b.x + b.w && c.y < b.y +b.h)return true;
+  //circle bounding box misses box
+  const cbox = {x:c.x-c.r,y:c.y-c.r,w:2*c.r,h:2*c.r};
+  if (!hitBoxBox(cbox,b)) return false;
 
+  //circle centre inside box
+  if ( c.x > b.x &&  c.y> b.y && c.x < b.x + b.w && c.y < b.y +b.h)return true;
+  //circle on touching corners
+  if (hitCircleCircle(c,{x:b.x,y:b.y,r:0})) return true;
+  if (hitCircleCircle(c,{x:b.x+b.w,y:b.y,r:0})) return true;
+  if (hitCircleCircle(c,{x:b.x,y:b.y+b.h,r:0})) return true;
+  if (hitCircleCircle(c,{x:b.x+b.w,y:b.y+b.h,r:0})) return true;
+  //line
+  if (2*c.r < b.w){
+    if (hitBoxBox(cbox,{x:b.x+c.r,y:b.y,w:b.w-2*c.r,h:0}))return true;
+    if (hitBoxBox(cbox,{x:b.x+c.r,y:b.y+b.h,w:b.w-2*c.r,h:0}))return true;
+  }
+  if (2*c.r < b.h){
+    if (hitBoxBox(cbox,{x:b.x,y:b.y+c.r,w:0,h:b.h-2*c.r}))return true;
+    if (hitBoxBox(cbox,{x:b.x+b.w,y:b.y+c.r,w:0,h:b.h-2*c.r}))return true;
+  }
+
+  return false
 }
 
 
 function trueCollides(a,b){
   if (! a.boundSet) {return true}
-  if (! )
+  if (! b.boundSet){
+    let bs = a.boundSet();
+    for (i in bs){
+      if (hitCircleBox(bs[i],b.area)) return true;
+    }
+    return false;
+  }
+  let as = a.boundSet();
+  let bs = b.boundset();
+  for (ab in as){
+    for (bb in bs){
+      if (hitCircleCircle(as[ab],bs[bb])){
+        return true
+      }
+    }
+  }
+  return false
 }
 
 function angler(friction){
@@ -42,7 +82,7 @@ function angler(friction){
         this.angle += aVel*dt();
       })
     },
-    push_aVel(pushf (! )){
+    push_aVel(push){
       aVel += push;
     }
   }
@@ -136,7 +176,7 @@ function waypoints(wps,speed) {
 function smallBounds(points){
   //points [{angle, dist, size}]
   return {
-    function boundSet(){
+    boundSet(){
       let res = [];
       let a = this.angle ?? 0;
       for(i in points){
@@ -203,7 +243,10 @@ const s1 = k.scene("main", () => {
     }
 
     ship.collides("ufo",()=>{rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
-      if (! trueCollides(a,b)) return ;
+
+      //TODO find out how to get ship's bounding box
+      console.log(ship.area);
+      //if (! trueCollides(a,b)) return ;
 
       go("exploded",score)
     });
