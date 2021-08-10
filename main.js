@@ -64,9 +64,10 @@ function trueCollides(a,b){
   if (! a.boundSet) {return true}
   if (! b.boundSet){
     let bs = a.boundSet();
-    console.log("Boundset = ",bs);
+    let b_area = getArea(b);
+    console.log("Boundset, B_area",bs,b_area);
     for (let i in bs){
-      if (hitCircleBox(bs[i],b.area)) return true;
+      if (hitCircleBox(bs[i],b_area)) return true;
     }
     return false;
   }
@@ -262,7 +263,7 @@ const s1 = k.scene("main", () => {
       score.text = `score=${score.n}`;
     }
 
-    ship.collides("ufo",(u)=>{//rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
+    ship.overlaps("ufo",(u)=>{//rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
 
       if (! trueCollides(ship,u)) return;
 
