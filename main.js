@@ -8,11 +8,21 @@ function close_to(a,b) {
     return ((Math.abs(a.x - b.x) < 5 )  && (Math.abs(a.y - b.y) <5))
 }
 
-function hitBoxBox(a,b){
-  if (a.x+a.w < b.x)return false;
-  if (a.y+a.h < b.y)return false;
-  if (a.x-a.w > b.x+b.w)return false;
-  if (a.y-a.h > b.y+b.h)return false;
+function getArea(e){
+  const a = e.area;
+  return {
+    x:e.pos.x + a.p1.x,
+    y:e.pos.y + a.p1.y,
+    w:a.p2.x - a.p1.x,
+    h:a.p2.y-a.p2.y
+  }
+}
+
+function hitPointBox(p,b){
+  if (p.x < b.x)return false;
+  if (p.y < b.y)return false;
+  if (p.x > b.x+b.w)return false;
+  if (p.y > b.y+b.h)return false;
   return true;
 }
 
@@ -25,26 +35,26 @@ function hitCircleCircle(a,b){
 }
 
 function hitCircleBox(c,b){
-  //circle bounding box misses box
-  const cbox = {x:c.x-c.r,y:c.y-c.r,w:2*c.r,h:2*c.r};
-  if (!hitBoxBox(cbox,b)) return false;
 
-  //circle centre inside box
-  if ( c.x > b.x &&  c.y> b.y && c.x < b.x + b.w && c.y < b.y +b.h)return true;
+  if (hitPointBox(c,{
+    x:b.x-c.r,
+    y:b.y,
+    w:b.w+2*c.r,
+    h:b.h
+  })) return true;
+  if (hitPointBox(c,{
+    x:b.x,
+    y:b.y-c.r,
+    w:b.w,
+    h:b.h+2*c.r
+  }))return true;
+
   //circle on touching corners
   if (hitCircleCircle(c,{x:b.x,y:b.y,r:0})) return true;
   if (hitCircleCircle(c,{x:b.x+b.w,y:b.y,r:0})) return true;
   if (hitCircleCircle(c,{x:b.x,y:b.y+b.h,r:0})) return true;
   if (hitCircleCircle(c,{x:b.x+b.w,y:b.y+b.h,r:0})) return true;
-  //line
-  if (2*c.r < b.w){
-    if (hitBoxBox(cbox,{x:b.x+c.r,y:b.y,w:b.w-2*c.r,h:0}))return true;
-    if (hitBoxBox(cbox,{x:b.x+c.r,y:b.y+b.h,w:b.w-2*c.r,h:0}))return true;
-  }
-  if (2*c.r < b.h){
-    if (hitBoxBox(cbox,{x:b.x,y:b.y+c.r,w:0,h:b.h-2*c.r}))return true;
-    if (hitBoxBox(cbox,{x:b.x+b.w,y:b.y+c.r,w:0,h:b.h-2*c.r}))return true;
-  }
+
 
   return false
 }
@@ -54,7 +64,8 @@ function trueCollides(a,b){
   if (! a.boundSet) {return true}
   if (! b.boundSet){
     let bs = a.boundSet();
-    for (i in bs){
+    console.log("Boundset = ",bs);
+    for (let i in bs){
       if (hitCircleBox(bs[i],b.area)) return true;
     }
     return false;
@@ -179,14 +190,16 @@ function smallBounds(points){
     boundSet(){
       let res = [];
       let a = this.angle ?? 0;
-      for(i in points){
+      for(let i in points){
         let p = points[i];
         let a2 = a + (p.angle ?? 0);
         let x = this.pos.x - p.dist * Math.sin(a2);
         let y = this.pos.y - p.dist * Math.cos(a2);
-        res.push({x:x,y:y,size:p.size});
+        res.push({x:x,y:y,r:p.size});
       }
+      return res;
     }
+
   }
 }
 
@@ -234,22 +247,47 @@ function keyMove(dist,rot){
 
 // define a scene
 const s1 = k.scene("main", () => {
-    let background = add([sprite("background"),pos(0,0)])
-    let ship = add(["ship",sprite("ship") ,scale(2,3), pos(300,400),origin("center"),rotate(0),vel(2),keyMove(5,0.5),boundsCheck(edge,()=>{go("left",score)}),angler(4)]);
+  //  let background = add([sprite("background"),pos(0,0)])
+    let ship = add(["ship",sprite("ship"), scale(2,3), pos(300,400),
+                  origin("center"),rotate(0),vel(2),keyMove(5,0.5),
+                  boundsCheck(edge,()=>{go("left",score)}),angler(4),
+                  //rect(25,25),color(1,1,0),
+                  smallBounds([{angle:0,dist:7,size:5},{angle:Math.PI,dist:7,size:5}]),
+                  area(vec2(-13,-13),vec2(13,13)),
+
+                  ]);
     let score = add(["score",text("score=0",30),pos(0,2),{n:0}]);
     function addScore(n){
       score.n+=n;
       score.text = `score=${score.n}`;
     }
 
-    ship.collides("ufo",()=>{rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
+    ship.collides("ufo",(u)=>{//rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
 
-      //TODO find out how to get ship's bounding box
-      console.log(ship.area);
+      if (! trueCollides(ship,u)) return;
+
+
+      console.log("Collision",ship,u);
       //if (! trueCollides(a,b)) return ;
 
       go("exploded",score)
     });
+
+    render("ship",(s)=>{
+      drawRect(vec2(0,0),50,50,{color:rgba(1,1,1,1)});
+      let bs = s.boundSet();
+      for (let i in bs){
+        let p = bs[i];
+        //console.log("Render BS",i,p);
+        drawRect(vec2(p.x - p.r,p.y-p.r),200,2*p.r,{color:rgba(1,1,1,1)})
+      }
+    });
+    render("ufo",(u) => {
+      let a = u.area;
+      //console.log("UFO Area" ,a)
+      drawRect(vec2(u.pos.x+ a.p1.x,u.pos.y + a.p1.y),a.p2.x - a.p1.x,a.p2.y-a.p1.y,{color:rgba(1,1,1,1)})
+    })
+
 
     collides("ufo","ufo",(a,b)=>{
       addScore(1)
