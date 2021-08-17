@@ -60,28 +60,6 @@ function hitCircleBox(c,b){
 }
 
 
-function trueCollides(a,b){
-  if (! a.boundSet) {return true}
-  if (! b.boundSet){
-    let bs = a.boundSet();
-    let b_area = getArea(b);
-    console.log("Boundset, B_area",bs,b_area);
-    for (let i in bs){
-      if (hitCircleBox(bs[i],b_area)) return true;
-    }
-    return false;
-  }
-  let as = a.boundSet();
-  let bs = b.boundset();
-  for (ab in as){
-    for (bb in bs){
-      if (hitCircleCircle(as[ab],bs[bb])){
-        return true
-      }
-    }
-  }
-  return false
-}
 
 function angler(friction){
   friction ??= 0;
@@ -185,24 +163,7 @@ function waypoints(wps,speed) {
 
 
 
-function smallBounds(points){
-  //points [{angle, dist, size}]
-  return {
-    boundSet(){
-      let res = [];
-      let a = this.angle ?? 0;
-      for(let i in points){
-        let p = points[i];
-        let a2 = a + (p.angle ?? 0);
-        let x = this.pos.x - p.dist * Math.sin(a2);
-        let y = this.pos.y - p.dist * Math.cos(a2);
-        res.push({x:x,y:y,r:p.size});
-      }
-      return res;
-    }
 
-  }
-}
 
 function chaser(target){
   return{
@@ -244,51 +205,43 @@ function keyMove(dist,rot){
     }
 }
 
+function tracker(target,angle,dist){
+  return {
+    add(){
+      action(()=>{
+        let a = angle + (target.angle??0);
+        this.pos.x =target.pos.x - dist*Math.sin(a);
+        this.pos.y = target.pos.y - dist*Math.cos(a);
+      })
+    }
+  }
+}
+
 //this: rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
 
 // define a scene
 const s1 = k.scene("main", () => {
-  //  let background = add([sprite("background"),pos(0,0)])
-    let ship = add(["ship",sprite("ship"), scale(2,3), pos(300,400),
-                  origin("center"),rotate(0),vel(2),keyMove(5,0.5),
-                  boundsCheck(edge,()=>{go("left",score)}),angler(4),
-                  //rect(25,25),color(1,1,0),
-                  smallBounds([{angle:0,dist:7,size:5},{angle:Math.PI,dist:7,size:5}]),
-                  area(vec2(-13,-13),vec2(13,13)),
+    let background = add([sprite("background"),pos(0,0)])
 
+    let ship = add(["ship",sprite("ship"), pos(300,400),
+                  origin("center"),rotate(0),vel(2),keyMove(5,0.5),
+                  boundsCheck(edge,()=>{go("left",score)}),angler(4)
                   ]);
+    add(["hbox",pos(0,0),tracker(ship,0,20),area(vec2(-7,-7),vec2(7,7)),origin("center")])
+    add(["hbox",pos(0,0),tracker(ship,Math.PI,25),area(vec2(-7,-7),vec2(7,7)),origin("center")])
+    add(["hbox",pos(0,0),tracker(ship,0,0),area(vec2(-7,-7),vec2(7,7)),origin("center")])
+
+
     let score = add(["score",text("score=0",30),pos(0,2),{n:0}]);
     function addScore(n){
       score.n+=n;
       score.text = `score=${score.n}`;
     }
 
-    ship.overlaps("ufo",(u)=>{//rect(10,40),color(1,1,0),area(vec2(-5,-10),vec2(10,10)),
 
-      if (! trueCollides(ship,u)) return;
-
-
-      console.log("Collision",ship,u);
-      //if (! trueCollides(a,b)) return ;
-
+    collides("hbox","ufo", (h,u) =>{
       go("exploded",score)
     });
-
-    render("ship",(s)=>{
-      drawRect(vec2(0,0),50,50,{color:rgba(1,1,1,1)});
-      let bs = s.boundSet();
-      for (let i in bs){
-        let p = bs[i];
-        //console.log("Render BS",i,p);
-        drawRect(vec2(p.x - p.r,p.y-p.r),200,2*p.r,{color:rgba(1,1,1,1)})
-      }
-    });
-    render("ufo",(u) => {
-      let a = u.area;
-      //console.log("UFO Area" ,a)
-      drawRect(vec2(u.pos.x+ a.p1.x,u.pos.y + a.p1.y),a.p2.x - a.p1.x,a.p2.y-a.p1.y,{color:rgba(1,1,1,1)})
-    })
-
 
     collides("ufo","ufo",(a,b)=>{
       addScore(1)
@@ -304,11 +257,12 @@ const s1 = k.scene("main", () => {
               break;
               case 1 : p = pos(Math.random()*680-20,500);
               break;
-              case 2 : p = pos(-40,Math.random()*520-40);
+              case 2 : p = pos(-40,Math.random()*520-20);
               break;
               default: p = pos(680,Math.random()*520-20);
             }
-            add(["ufo",sprite("ufo"),p,chaser(ship),origin("center")])
+            let u = add(["ufo",sprite("ufo"),p,chaser(ship),origin("center")])
+            console.log("Added ",u);
     });
     keyPress("space",()=>{go("two",score)})
 });
