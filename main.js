@@ -78,10 +78,10 @@ function angler(friction){
   }
 }
 
-function vel(friction){
+function vel(friction,x,y){
   friction ??= 0;
-  let x =0;
-  let y =0;
+  x ??=0;
+  y ??=0;
   return{
     add(){
       this.action(()=> {
@@ -116,6 +116,7 @@ function boundsCheck(bounds, f){
 
 
 loadRoot("assets/");
+loadSprite("exp","exp.png")
 loadSprite("space_end","where_in_space.png")
 loadSprite("exploded","exploded.png")
 loadSprite("ufo","ufo.png")
@@ -232,6 +233,8 @@ const s1 = k.scene("main", () => {
     add(["hbox",pos(0,0),tracker(ship,0,0),area(vec2(-7,-7),vec2(7,7)),origin("center")])
 
 
+
+
     let score = add(["score",text("score=0",30),pos(0,2),{n:0}]);
     function addScore(n){
       score.n+=n;
@@ -247,6 +250,35 @@ const s1 = k.scene("main", () => {
       addScore(1)
       destroy(a)
       destroy(b)
+    });
+
+    loop(2 ,()=>{
+      let e = Math.floor(Math.random()*15)
+      if (e === 0){
+        let n = Math.floor(Math.random() * 4);
+        let p = pos(0,0);
+        let sx = 0
+        let sy = 0
+        switch (n){
+          case 0 :
+          p = pos(Math.random()* 680-20,-20);
+          sy = 40
+          break;
+          case 1 :
+          p = pos(Math.random()*680-20,500);
+          sy = -40;
+          break;
+          case 2 :
+          p = pos(-20,Math.random()*520-20);
+          sx=40
+          break;
+          default:
+          p = pos(660,Math.random()*520-20);
+          sx = -40
+        }
+        add([p,sprite("exp"),origin("center"),vel(0,sx,sy)])
+      }
+
     });
 
     loop(5 ,()=>{
