@@ -128,6 +128,7 @@ loadSprite("ufo","ufo.png")
 loadSprite("coin","coin.png");
 loadSprite("ship","ship.png");
 loadSprite("background","background.png")
+loadSprite("cufo","comander_ufo.png")
 
 const wayPoints=[{x:600,y:50},{x:50,y:350},{x:10,y:10},{x:1,y:1}];
 const way2 = [ { x:100,y:500}, {x:500,y:100}];
@@ -160,6 +161,19 @@ function waypoints(wps,speed) {
     };
 }
 
+function health(hp,f){
+  hp ??= 1;
+  f ??= (a)=>{destroy(a)}
+  return {
+
+    attack(n){
+      hp -= n
+      if (hp == 0){
+        f(this)
+      }
+    }
+  };
+}
 
 function ttl(time){
   return{
@@ -248,23 +262,59 @@ const s1 = k.scene("main", () => {
       score.text = `score=${score.n}`;
     }
 
+    function dieScore(s){
+      return (a)=>{
+        destroy(a);
+        addScore(s);
+      }
+    }
+
     collides("hbox","exp", (h,e) =>{
       addScore(3)
       destroy(e)
     });
-
-    collides("hbox","ufo", (h,u) =>{
+    collides("ufo","cufo", (u,c) =>{
+      destroy(u)
+      c.attack(1)
+    });
+    collides("crash","hbox", (c,h)=>{
       go("exploded",score)
     });
-
+    collides("cufo","cufo", (u,c) =>{
+      u.attack(1)
+      c.attack(1)
+    });
     collides("ufo","ufo",(a,b)=>{
       addScore(1)
       destroy(a)
       destroy(b)
     });
 
+    {
+      let h = 1 //DEBUG 1 for waiting before first onw
+      loop(60 ,()=>{
+        if (h === 1) {
+          h++
+          return;
+        }
+        let e = Math.floor(Math.random() * 4);
+        let p = pos(0,0);
+        switch (e){
+          case 0 : p = pos(Math.random()* 680-20,-20);
+          break;
+          case 1 : p = pos(Math.random()*680-20,500);
+          break;
+          case 2 : p = pos(-40,Math.random()*520-20);
+          break;
+          default: p = pos(680,Math.random()*520-20);
+        }
+        add([p,chaser(ship),sprite("cufo"),origin("center"),"cufo","crash",health(h,dieScore(h))])
+        h += 1
+      });
+    }
+
     loop(2 ,()=>{
-      let e = Math.floor(Math.random()*3)
+      let e = Math.floor(Math.random()*15)
       if (e === 0){
         let n = Math.floor(Math.random() * 4);
         let p = pos(0,0);
@@ -305,7 +355,7 @@ const s1 = k.scene("main", () => {
               break;
               default: p = pos(680,Math.random()*520-20);
             }
-            let u = add(["ufo",sprite("ufo"),p,chaser(ship),origin("center")])
+            let u = add(["ufo",sprite("ufo"),p,chaser(ship),"crash",origin("center")])
             console.log("Added ",u);
     });
     keyPress("space",()=>{go("two",score)})
