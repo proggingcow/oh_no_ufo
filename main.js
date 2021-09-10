@@ -116,20 +116,18 @@ function boundsCheck(bounds, f){
 
 
 loadRoot("assets/");
-loadSprite("exp","exp.png")
+loadSprite("exp","exp.png",{
+  sliceX:2,
+  anims:{
+    move:{from:0,to:1}
+  }
+});
 loadSprite("space_end","where_in_space.png")
 loadSprite("exploded","exploded.png")
 loadSprite("ufo","ufo.png")
 loadSprite("coin","coin.png");
 loadSprite("ship","ship.png");
 loadSprite("background","background.png")
-loadSprite("alien","alien.png",{
-    sliceX:3,
-    anims:{
-        move:{from:0,to:1},
-    },
-
-});
 
 const wayPoints=[{x:600,y:50},{x:50,y:350},{x:10,y:10},{x:1,y:1}];
 const way2 = [ { x:100,y:500}, {x:500,y:100}];
@@ -163,7 +161,16 @@ function waypoints(wps,speed) {
 }
 
 
-
+function ttl(time){
+  return{
+    add(){
+      this.action(() =>{
+        time -= dt()
+        if (time <= 0){destroy(this)}
+      })
+    }
+  }
+}
 
 
 function chaser(target){
@@ -241,6 +248,10 @@ const s1 = k.scene("main", () => {
       score.text = `score=${score.n}`;
     }
 
+    collides("hbox","exp", (h,e) =>{
+      addScore(3)
+      destroy(e)
+    });
 
     collides("hbox","ufo", (h,u) =>{
       go("exploded",score)
@@ -253,7 +264,7 @@ const s1 = k.scene("main", () => {
     });
 
     loop(2 ,()=>{
-      let e = Math.floor(Math.random()*15)
+      let e = Math.floor(Math.random()*3)
       if (e === 0){
         let n = Math.floor(Math.random() * 4);
         let p = pos(0,0);
@@ -262,21 +273,22 @@ const s1 = k.scene("main", () => {
         switch (n){
           case 0 :
           p = pos(Math.random()* 680-20,-20);
-          sy = 40
+          sy = 100
           break;
           case 1 :
           p = pos(Math.random()*680-20,500);
-          sy = -40;
+          sy = -100;
           break;
           case 2 :
           p = pos(-20,Math.random()*520-20);
-          sx=40
+          sx=100
           break;
           default:
           p = pos(660,Math.random()*520-20);
-          sx = -40
+          sx = -100
         }
-        add([p,sprite("exp"),origin("center"),vel(0,sx,sy)])
+        let a = add([p,"exp",sprite("exp",{animSpeed:0.5}),origin("center"),vel(0,sx,sy),ttl(7)]);
+        a.play("move");
       }
 
     });
