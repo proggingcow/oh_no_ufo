@@ -322,7 +322,7 @@ const s1 = k.scene("main", () => {
           break;
           default: p = pos(680,Math.random()*520-20);
         }
-        add([p,chaser(ship),sprite("cufo"),origin("center"),"cufo","crash",health(h,dieScore(h))])
+        add([p,chaser(ship),sprite("cufo"),origin("center"),"cufo","crash",health(h,dieScore(h)),area(vec2(-30,-13),vec2(30,13))])
         h += 1
       });
     }
@@ -373,7 +373,7 @@ const s1 = k.scene("main", () => {
               break;
               default: p = pos(680,Math.random()*520-20);
             }
-            add(["ufo",sprite("ufo"),p,chaser(ship),"crash",origin("center")])
+            add(["ufo",sprite("ufo"),p,chaser(ship),"crash",origin("center"),area(vec2(-30,-13),vec2(30,13))])
             un += 1
     });
     keyPress("space",()=>{go("two",score)})
