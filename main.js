@@ -135,7 +135,9 @@ loadSprite("coin","coin.png");
 loadSprite("ship","ship.png");
 loadSprite("background","background.png")
 loadSprite("cufo","comander_ufo.png")
-
+loadSound("gh","gustav_hello.mp3")
+loadSound("boom","crash.mp3")
+loadSound("ting","ting.mp3")
 const wayPoints=[{x:600,y:50},{x:50,y:350},{x:10,y:10},{x:1,y:1}];
 const way2 = [ { x:100,y:500}, {x:500,y:100}];
 const edge = {x:0,y:0,w:640,h:480}
@@ -278,6 +280,7 @@ const s1 = k.scene("main", () => {
     }
 
     collides("hbox","exp", (h,e) =>{
+      play("ting")
       addScore(3)
       destroy(e)
     });
@@ -286,15 +289,18 @@ const s1 = k.scene("main", () => {
       ex.play("move")
       destroy(u)
       c.attack(1)
+      play("boom")
     });
     collides("crash","hbox", (c,h)=>{
       go("exploded",score)
     });
     collides("cufo","cufo", (u,c) =>{
+      play("boom")
       u.attack(1)
       c.attack(1)
     });
     collides("ufo","ufo",(a,b)=>{
+      play("boom")
       addScore(1)
       let ex = add([sprite("explode",{animSpeed:0.1}),ttl(0.8),pos(a.pos.x,a.pos.y),origin("center"),"crash"])
       ex.play("move")
@@ -390,6 +396,7 @@ const s2 = k.scene("two",(score) => {
     keyPress("space",()=>{go("main")})
 });
 const s3 = k.scene("exploded",(score) => {
+    play("boom")
     let background = add([sprite("exploded"),pos(0,0)])
     let fScore = add(["score",text(`final score=${score.n}`,30),pos(0,2)])
     k.add([
@@ -400,6 +407,7 @@ const s3 = k.scene("exploded",(score) => {
     keyPress("space",()=>{go("main")})
 });
 const sl = k.scene("left",(score) => {
+    play("gh")
     let background = add([sprite("space_end"),pos(0,0)])
     let fScore = add(["score",text(`final score=${score.n}`,30),pos(0,2)])
     k.add([
